@@ -1,0 +1,41 @@
+import React, { createContext, useContext, useMemo, useState } from "react";
+import { clearAuth, getAuth, setAuth } from "../utils/storage";
+
+// FIX: space after const
+const AuthContext = createContext(null);
+
+export const AuthProvider = ({ children }) => {
+  const existing = getAuth();
+
+  const [token, setToken] = useState(existing?.token || null);
+  const [user, setUser] = useState(existing?.user || null);
+
+  // FIX: space after const
+  const isAuthenticated = Boolean(token);
+
+  const login = ({ token: t, user: u }) => {
+    setToken(t);
+    setUser(u);
+    setAuth({ token: t, user: u });
+  };
+
+  const logout = () => {
+    setToken(null);
+    setUser(null);
+    clearAuth();
+  };
+
+  const value = useMemo(
+    () => ({ token, user, isAuthenticated, login, logout }),
+    [token, user, isAuthenticated],
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+// FIX: space after const
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+};
